@@ -4,7 +4,7 @@ import login from './views/login/login'
 
 Vue.use(Router);
 
-export default new Router({
+ const routerMap = new Router({
   mode: 'history',
   base: process.env.BASE_URL,
   routes: [
@@ -60,3 +60,18 @@ export default new Router({
     }
   ]
 })
+
+routerMap.beforeEach((to,from,next) => {
+  const logined = !!localStorage.getItem("logined");
+  if ( to.path !== '/' && to.path !== '/addCourse' && to.path !== '/addCourse' && to.path !== '/editCourse' ) {   // 与登录注册有关的页面可以直接跳转
+    next();
+  } else {
+      if (logined) {
+        next();
+      } else {
+        next("/login");
+      }
+  }
+})
+
+export default routerMap;

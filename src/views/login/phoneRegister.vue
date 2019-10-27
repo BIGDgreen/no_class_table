@@ -1,4 +1,4 @@
-<template>
+<template xmlns:v-slot="http://www.w3.org/1999/XSL/Transform">
     <div class="phoneRegister">
         <bm_phone_login  @parent_choose_area="to_chooseArea"
                          @parent_get_code="getCode"
@@ -87,7 +87,7 @@
                     .then((res) => {
                         console.log(res);
                         if (res.data.status === 'success'){
-                            sessionStorage.setItem('login_key',res.data.data);
+                            localStorage.setItem('login_key',res.data.data);
                             // 跳转到设置账号密码登录页面
                             this.$router.push({
                                 name: "register",

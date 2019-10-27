@@ -66,7 +66,7 @@
                             <!---------------左拉菜单按钮---------------->
                             <span class="iconfont icon-NMStubiao-" @click="showLayer()"></span>
                         </div>
-                    <!------------------------------------------课程表------------------------------------------>
+<!----------------------------------------------------------------------课程表-------------------------------------------------------------------->
                         <div class="course_table">
                             <div class="column" :class="'column'+index" v-for="(day,index) in courses" :key="index">
                                 <div class="course_header">
@@ -74,18 +74,19 @@
                                 </div>
                                 <div v-for="(course,k) in courses[index].classes" :key="k" class="rows" :class="{rowsFull:course!==''}" ref="rows_style">
                                     <div class="cell" :ref="'cell_style'">
-                                        {{course}}
+                                        <pre>{{course}}</pre>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                    <!-------------------------底部按钮------------------------------>
+<!-------------------------------------------------底部按钮-------------------------------------------------------------->
                     <div class="button_wrapper">
                         <!-------------------------点开菜单------------------------------->
                         <div class="menuBtn">
                             <vue-fab icon="icon-jiahao"
                                      mainBtnColor="#3fa4ff"
+                                     :scrollAutoHide = scrollAutoHide
                             >
                                 <fab-item
                                         v-for="(item, index) in menu"
@@ -105,28 +106,36 @@
                         <div class="editBtn" v-if="!isManager">
                             <vue-fab icon="icon-bianji"
                                      mainBtnColor="white"
-                                     @clickMainBtn="editTable">
+                                     @clickMainBtn="editTable"
+                                     :scrollAutoHide = scrollAutoHide
+                            >
                             </vue-fab>
                         </div>
                         <!-------------------------查看邀请码----------------------------->
                         <div class="viewBtn" v-if="isManager">
                             <vue-fab icon="icon-yaoqingma"
                                      mainBtnColor="white"
-                                     @clickMainBtn="viewCode">
+                                     @clickMainBtn="viewCode"
+                                     :scrollAutoHide = scrollAutoHide
+                            >
                             </vue-fab>
                         </div>
                         <!-------------------------返回我的课表---------------------------->
                         <div class="backBtn" v-if="isManager">
                             <vue-fab icon="icon-tuichu"
                                      mainBtnColor="white"
-                                     @clickMainBtn="backMain">
+                                     @clickMainBtn="backMain"
+                                     :scrollAutoHide = scrollAutoHide
+                            >
                             </vue-fab>
                         </div>
                         <!-------------------------查看部门成员---------------------------->
                         <div class="memberBtn" v-if="isManager">
                             <vue-fab icon="icon-chengyuanguanli"
                                      mainBtnColor="white"
-                                     @clickMainBtn="viewMember">
+                                     @clickMainBtn="viewMember"
+                                     :scrollAutoHide=scrollAutoHide
+                            >
                             </vue-fab>
                         </div>
                     </div>
@@ -189,9 +198,9 @@
                         </a-form>
                         <div class="inviteCode" v-if="inviteSuccess">您的邀请码为：<br>
                             <div class="codeGroup" style="text-align: center;">
-                                <b v-for="code in inviteCodes" style="color:red;">
+                                <pre v-for="code in inviteCodes" style="font-weight: bold;color:red;">
                                     {{code}}<br>
-                                </b>
+                                </pre>
                             </div>
                         </div>
                     </a-modal>
@@ -248,8 +257,6 @@
                 </div>
             </div>
         </div>
-        <!----------------------------------------未登录----------------------------------------------->
-        <div v-if="!logined" class="noLogin">还未登录，请先<router-link to="/login">登录/注册</router-link></div>
     </div>
 </template>
 
@@ -262,10 +269,11 @@
         name: "mainPage",
         data(){
             return{
+                scrollAutoHide: false,
                 //加载状态
                 isLoad:false,
                 //登录状态
-                logined:sessionStorage.getItem("logined"),
+                logined:localStorage.getItem("logined"),
                 //周次
                 weeknums:['第一周','第二周','第三周','第四周','第五周','第六周','第七周','第八周','第九周','第十周','第十一周','第十二周','第十三周','第十四周','第十五周','第十六周','第十七周','第十八周','第十九周','第二十周'],
                 //默认显示周次
@@ -346,20 +354,21 @@
             //获取课表
             this.axios.get(this.baseUrl+'/course',{
               params:{
-                  user_id:sessionStorage.getItem("user_id")
+                  user_id:localStorage.getItem("user_id")
               },
                headers:{
-                    'Authorization':sessionStorage.getItem('token'),
+                    'Authorization':localStorage.getItem('token'),
                 }
             })
                 .then((res) => {
-                    console.log("myClass",res);
+                    // console.log("myClass",res);
                     if (res.data.status === "success"){
                         this.dataToClass(res.data.data);
+                        this.setRowsHeight(res.data.data);
                     }
                 })
                 .catch((err) => {
-                    console.log(err);
+                    // console.log(err);
                     //全局提示
                     this.$notification.open({
                         message: '网络连接错误！',
@@ -374,44 +383,61 @@
         methods:{
             //退出登录
             exitLogin(){
+                // 删除用户信息
+                localStorage.clear();
                 this.$router.push({path:"/login"});
             },
             //查找课程表中文字最多的单元格，动态设置rows高度
             setRowsHeight(res){
-                console.log(res);
-                let length_arr = [];
-                res.map((item,index) => {
-                    //删除数组中的周六和周日
-                    if (item.week === "周六" || item.week === "周日") {
-                        res.splice(index,1);
-                    } else {
-                        //将字符串长度存入数组
-                        let item_value = item.weeksText || item.username.join();
-                        let length = item_value.length;
-                        length_arr.push(length);
+                // console.log("res",res);
+                let that = this;
+                let length_arr = [];  // 长度数组
+                let new_res = [];  // 去除周六周日后的数组
+                res.map((item) => {
+                    // 删除数组中的周六和周日
+                    if (item.week !== "周六" && item.week !== "周日") {
+                        new_res.push(item);
                     }
                 });
+                // console.log("new_res",new_res);
+                new_res.map((item_new) => {
+                    let len = 0;
+                    if (item_new.username !== null && item_new.username !== undefined) {
+                        len = item_new.username.length;   // 数组长度
+                    } else if (item_new.weeksText !== null && item_new.weeksText !== undefined) {
+                        len = item_new.weeksText.length;  // 字符串长度
+                    }
+                    length_arr.push(len);
+                });
+
                 let maxLength = Math.max(...length_arr);//获取最大长度
                 // console.log("maxLength",maxLength);
+                // console.log("length_arr",length_arr);
                 let indexOfMax = length_arr.indexOf(maxLength);//获取最大长度元素对应下标
                 // console.log("indexOfMax",indexOfMax);
                 //设置rows高度
-                if (res.length > 0){        //当课表不为空时
-                    this.$refs.rows_style.map((row_style) => {
-                        let x = this.weekToNum(res[indexOfMax].week);
-                        let y = this.periodToNum(res[indexOfMax].period);
-                        let index = x*6+y;
-                        // console.log(x,y,index);
-                        this.$nextTick(() => {
-                            let cell_height = this.$refs.cell_style[index].offsetHeight;
-                            // console.log("cell_height",cell_height);
-                            if (cell_height < 40) {
-                                row_style.style.height = (cell_height + 50) + "px";
-                            } else if (cell_height >= 40) {
-                                row_style.style.height = (cell_height + 20) + "px";
-                            }
+                if (new_res.length > 0){        //当课表不为空时
+                    this.$nextTick(() => {
+                        this.$refs.rows_style.map((row_style) => {
+                            let x = this.weekToNum(new_res[indexOfMax].week); // 周次
+                            let y = this.periodToNum(new_res[indexOfMax].period); // 节次
+                            // console.log("周"+x+"，第"+y+"节");
+                            let index = (x-1)*6 + y - 1;   // 最大长度的课程对应的数组下标
+                            // console.log(x,y,index);
+                            this.$nextTick(() => {
+                                if ( this.$refs.cell_style[index] !== null && this.$refs.cell_style[index] !== undefined ) {
+                                    let cell_height = this.$refs.cell_style[index].offsetHeight;
+                                    if (cell_height < 40) {
+                                        row_style.style.height = (cell_height + 50) + "px";
+                                    } else if (cell_height >= 40) {
+                                        row_style.style.height = (cell_height + 20) + "px";
+                                    }
+                                } else {
+                                    console.info("Set Height Fail!");
+                                }
+                            });
                         });
-                    });
+                    })
                 }
             },
             //转换周次与数字
@@ -419,15 +445,17 @@
                 if (week !== undefined) {
                     switch (week) {
                         case "周一":
-                            return 0;
-                        case "周二":
                             return 1;
-                        case "周三":
+                        case "周二":
                             return 2;
-                        case "周四":
+                        case "周三":
                             return 3;
-                        case "周五":
+                        case "周四":
                             return 4;
+                        case "周五":
+                            return 5;
+                        default :
+                            return -1;
                     }
                 }
             },
@@ -436,21 +464,23 @@
                 if (period !== undefined){
                     switch (period) {
                         case 12:
-                            return 0;
-                        case 34:
                             return 1;
-                        case 56:
+                        case 34:
                             return 2;
-                        case 78:
+                        case 56:
                             return 3;
-                        case 910:
+                        case 78:
                             return 4;
-                        case 11:
+                        case 910:
                             return 5;
+                        case 11:
+                            return 6;
+                        default:
+                            return -1;
                     }
                 }
             },
-            //将后端传过来的以部门为单位的数组转化为以组织为单位分类展示
+            // 将后端传过来的以部门为单位的数组转化为以组织为单位分类展示
             singleToGroup(data,groups){
                 let that = this;
                 for (let i = 0 ; i < data.length ; i++){        //全部部门
@@ -503,10 +533,10 @@
             getManageData(){
                 this.axios.get(this.baseUrl+'/group/adminGroup',{
                     params:{
-                        user_id:sessionStorage.getItem('user_id')
+                        user_id:localStorage.getItem('user_id')
                     },
                     headers:{
-                        'Authorization':sessionStorage.getItem('token'),
+                        'Authorization':localStorage.getItem('token'),
                     }
                 })
                     .then((res) => {
@@ -515,7 +545,10 @@
                         // console.log("my_manage_groups",this.manage_groups);
                     })
                     .catch((err) => {
-                        console.log("err",err);
+                        this.$notification.open({
+                            message: '网络连接错误！',
+                            icon: <a-icon type="exclamation-circle" style="color: #FF434B" />
+                        });
                     });
             },
             //获取我加入的组织
@@ -523,30 +556,50 @@
                 let that = this;
                 this.axios.get(this.baseUrl+'/group/attendGroup',{
                     params:{
-                        user_id:sessionStorage.getItem('user_id')
+                        user_id:localStorage.getItem('user_id')
                     },
                     headers:{
-                        'Authorization':sessionStorage.getItem('token'),
+                        'Authorization':localStorage.getItem('token'),
                     }
                 })
                     .then((res) => {
                         // console.log("join",res);
-                        this.singleToGroup(res.data.data,this.join_groups);//将数据分类
+                        that.singleToGroup(res.data.data,this.join_groups);//将数据分类
                         // console.log("my_join",this.join_groups);
                     })
                     .catch((err) => {
-                        console.log(err);
+                        that.$notification.open({
+                            message: '网络连接错误！',
+                            icon: <a-icon type="exclamation-circle" style="color: #FF434B" />
+                        });
                     })
             },
             //将数据转化为课表，呈现出来
             dataToClass(res){
+                this.defaultWeek = '第一周';
+                // console.info("class",res);
                 let that = this;
                 this.courses.map((courseItem) => {
                     res.map((item) => {
                         if (item.week === courseItem.weekday){
-                            let courseNum = this.periodToNum(item.period);
-                            let item_value = item.weeksText || item.username.join();
-                            if (courseNum === 5){
+                            let courseNum = this.periodToNum(item.period) - 1;  // 将节次转换为数字
+                            let item_value = item.weeksText || item.username.join();  // 表格里的内容（节次或者人名）
+                            // console.log(item_value);
+                            if (item.username !== undefined && item.username !== null) {
+                                // 将人名按字典树排序
+                                let item_value_arr = item_value.split(',');
+                                item_value_arr.sort((a,b) => {
+                                    return a.localeCompare(b);
+                                });
+                                // 每个人名后面都加换行符
+                                let str = '';
+                                for(let i = 0; i < item_value_arr.length; i++) {
+                                    str += item_value_arr[i];
+                                    str += `\n`;
+                                }
+                                item_value = str;
+                            }
+                            if (courseNum === 5){    // 第11节课
                                 that.$set(courseItem.classes,courseNum-1,item_value);
                                 that.$set(courseItem.classes,courseNum,item_value);
                             } else {
@@ -555,8 +608,6 @@
                         }
                     });
                 });
-                //设置单元格高度
-                this.setRowsHeight(res);
             },
             //点击加号按钮展开的菜单
             clickItem(index){
@@ -604,10 +655,10 @@
                         if (!err) {
                             this.loading = true;
                             //给创建的部门赋值为用户填入的部门名称
-                            console.log(this.form.getFieldValue("create_partName0"));
+                            // console.log(this.form.getFieldValue("create_partName0"));
                             let input_create_parts = [];
                             this.create_parts.map((create_part,index) => {
-                                console.log(index);
+                                // console.log(index);
                                 input_create_parts.push(this.form.getFieldValue(`create_partName${index}`));
                             });
                             // console.log(input_create_parts);
@@ -615,14 +666,14 @@
                             let params = new URLSearchParams();
                             params.append("branch_name",input_create_parts.join());
                             params.append("name",this.form.getFieldValue('create_orgName'));
-                            params.append("user_id",sessionStorage.getItem("user_id"));
+                            params.append("user_id",localStorage.getItem("user_id"));
                             this.axios.post(this.baseUrl+'/group',params,{
                                 headers:{
-                                    'Authorization':sessionStorage.getItem('token'),
+                                    'Authorization':localStorage.getItem('token'),
                                 }
                             })
                                 .then((res) => {
-                                    console.log(res);
+                                    // console.log(res);
                                     this.loading = false;
                                     this.disabled = true;
                                     //全局提示
@@ -655,7 +706,7 @@
                 this.form.validateFields(
                     (err) => {
                         if (!err) {
-                            console.info('success');
+                            // console.info('success');
                             this.loading = true;
                             //全局提示
                             this.$notification.open({
@@ -671,20 +722,23 @@
                             let params = new URLSearchParams();
                             params.append('_method','PUT');
                             params.append('key',this.form.getFieldValue('join_partName'));
-                            params.append('user_id',sessionStorage.getItem("user_id"));
+                            params.append('user_id',localStorage.getItem("user_id"));
                             this.axios.post(this.baseUrl+'/group/apply',params,{
                                 headers:{
-                                    'Authorization':sessionStorage.getItem('token'),
+                                    'Authorization':localStorage.getItem('token'),
                                 }
                             })
                                 .then((res) => {
-                                    console.log(res);
+                                    // console.log(res);
                                     //刷新页面
                                     this.$router.push({path:"111"});
                                     this.$router.go(-1);
                                 })
                                 .catch((err) => {
-                                    console.log(err);
+                                    this.$notification.open({
+                                        message: '网络连接错误！',
+                                        icon: <a-icon type="exclamation-circle" style="color: #FF434B" />
+                                    });
                                 })
                         }
                     },
@@ -712,7 +766,7 @@
             //查看邀请码
             viewCode(){
                 this.visibleView = true;
-                console.log(this.this_part);//当前选中部门
+                // console.log(this.this_part);//当前选中部门
             },
             //返回我的课表
             backMain(){
@@ -726,17 +780,20 @@
                 this.axios.get(this.baseUrl+'/group/users',{
                     params:{
                         id:this.this_part.id,
-                        user_id:sessionStorage.getItem("user_id")
+                        user_id:localStorage.getItem("user_id")
                     }
                 })
                     .then((res) => {
-                        console.log(res);
+                        // console.log(res);
                         if (res.data.status === "success"){
                             this.part_members = res.data.data;
                         }
                     })
                     .catch((err) => {
-                        console.log(err);
+                        this.$notification.open({
+                            message: '网络连接错误！',
+                            icon: <a-icon type="exclamation-circle" style="color: #FF434B" />
+                        });
                     })
             },
             /*******************************************************************左拉菜单*************************************************************/
@@ -765,40 +822,22 @@
                                 click: () =>{
                                     //关闭通知
                                     this.$notification.close(key);
-                                    //从列表中移除该部门
-                                    console.log(that.selectedPart);
-                                    console.log(that.selectedOrg);
-                                    //删除组织
-                                    // if(this.selectedOrg.substr(0,2) === 'g1') {
-                                    //     //我管理的，删除即解散
-                                    //     let orgNum = parseInt(that.selectedOrg.substr(4,1));
-                                    //     that.manage_groups.splice(orgNum,1);
-                                    //     //发送请求
-                                    //
-                                    // } else if (this.selectedOrg.substr(0,2) === 'g2') {
-                                    //     //我加入的，删除即退出
-                                    //     let orgNum = parseInt(that.selectedOrg.substr(4,1));
-                                    //     that.join_groups.splice(orgNum,1);
-                                    // }
                                     //删除部门
                                     if (this.selectedPart.substr(0,1) === '1') {
                                         this.deleteAllowed = true;
                                         //我管理的
                                         let i = parseInt(that.selectedPart.substr(2,1));
-                                        console.log("i",i);
                                         let j = parseInt(that.selectedPart.substr(4,1));
-                                        console.log("j",j);
-                                        console.log("manage_group",that.manage_groups);
                                         let this_part = that.manage_groups[i].parts[j];
                                         // console.log("this_part",that.manage_groups[i-1].parts[j]);
                                         //发送请求
                                         this.axios.get(this.baseUrl + '/group/delete',{
                                             params:{
                                                 id:this_part.id,
-                                                user_id:sessionStorage.getItem('user_id')
+                                                user_id:localStorage.getItem('user_id')
                                             },
                                             headers:{
-                                                'Authorization':sessionStorage.getItem('token'),
+                                                'Authorization':localStorage.getItem('token'),
                                             }
                                         })
                                             .then((res) => {
@@ -807,16 +846,12 @@
                                                 this.$router.go(-1);
                                             })
                                             .catch((err) => {
-                                                console.log(err);
+                                                this.$notification.open({
+                                                    message: '网络连接错误！',
+                                                    icon: <a-icon type="exclamation-circle" style="color: #FF434B" />
+                                                });
                                             })
                                     }
-                                    // else if (this.selectedPart.substr(0,1) === '2') {
-                                    //     //我加入的
-                                    //     let i = parseInt(that.selectedPart.substr(2,1));
-                                    //     let j = parseInt(that.selectedPart.substr(4,1));
-                                    //     that.join_groups[i].parts.splice(j,1);
-                                    //     //发送请求
-                                    // }
                                     //全局提示
                                     this.$notification.open({
                                         message: '删除成功',
@@ -836,23 +871,22 @@
             },
             //操作左拉菜单
             handleClick (e) {
-                console.log('click', e);
+                // console.log('click', e);
                 this.selectedPart = e.key; //选中的部门
             },
             titleClick (e) {
                 this.deleteAllowed = false;
                 //选择周次不可见
                 this.isManager = false;
-                console.log('titleClick', e);
-                console.log(e.key); //sub1 , sub2
+                // console.log('titleClick', e);
+                // console.log(e.key); //sub1 , sub2
             },
             orgClick(e){
-                console.log('orgClick',e);
-                this.deleteAllowed = false;
-                //选择周次不可见
-                this.isManager = false;
+                // console.log('orgClick',e);
+                this.isManager = true;   // 显示管理者拥有的功能
+                this.deleteAllowed = true;
                 this.selectedOrg = e.key; //选中的组织
-                console.log("selectedOrg",this.selectedOrg);
+                // console.log("selectedOrg",this.selectedOrg);
             },
             //点击我管理的部门，获取无课表
             getNoClassTable(isInclude){
@@ -883,31 +917,36 @@
                 this.axios.get(this.baseUrl + '/course/no_class/group/'+this.this_part.id,{
                     params:{
                         include:isInclude,
-                        user_id:sessionStorage.getItem('user_id'),
+                        user_id:localStorage.getItem('user_id'),
                         weeks:1  //默认第一周
                     },
                     headers:{
-                        'Authorization':sessionStorage.getItem('token'),
+                        'Authorization':localStorage.getItem('token'),
                     }
                 })
                     .then((res) => {
                         //选择周次可见
                         this.isManager = true;
-                        console.log("manage_class",res);
+                        // console.log("manage_class",res);
                         this.dataToClass(res.data.data);
+                        this.setRowsHeight(res.data.data);
                         //左拉菜单自动收回
                         this.$refs.drawer.toggle(false);
                         this.isLoad = false;
                     })
                     .catch((err) => {
-                        console.log(err);
+                        // console.log("err",err);
+                        this.$notification.open({
+                            message: '网络连接错误！',
+                            icon: <a-icon type="exclamation-circle" style="color: #FF434B" />
+                        });
                         this.isLoad = false;
                     })
             },
             partClick(e){
                 let that = this;
                 //点击部门
-                console.log('partClick',e);
+                // console.log('partClick',e);
                 if (e.key.substr(0,1) === '1') {
                     //我管理的
                     this.isLoad = true;
@@ -916,9 +955,9 @@
                     // console.log("i",i);
                     let j = parseInt(e.key.substr(4,1));
                     // console.log("j",j);
-                    console.log("manage_group",that.manage_groups);
+                    // console.log("manage_group",that.manage_groups);
                     this.this_part = that.manage_groups[i].parts[j]; //获取当前部门
-                    console.log("this_part",that.manage_groups[i].parts[j]);
+                    // console.log("this_part",that.manage_groups[i].parts[j]);
                     this.getNoClassTable(1);  //获取无课表,默认"包含我"
                 }
             },
@@ -926,17 +965,17 @@
             onClick_week(key) {
                 this.isLoad = true;
                 let k = key.key; //用户选择的周次
-                console.log(k+1);
+                // console.log(k+1);
                 this.defaultWeek = this.weeknums[k];
                 //发送请求
                 this.axios.get(this.baseUrl + '/course/no_class/group/'+this.this_part.id,{
                     params:{
                         include:1,
-                        user_id:sessionStorage.getItem("user_id"),
+                        user_id:localStorage.getItem("user_id"),
                         weeks:k+1
                     },
                     headers:{
-                        'Authorization':sessionStorage.getItem('token'),
+                        'Authorization':localStorage.getItem('token'),
                     }
                 })
                     .then((res) => {
@@ -962,21 +1001,19 @@
                                 classes:["","","","","",""]
                             },
                         ];
-                        console.log(res);
+                        // console.log(res);
                         this.dataToClass(res.data.data);
+                        this.setRowsHeight(res.data.data);
                         this.isLoad = false;
                     })
                     .catch((err) => {
-                        console.log(err);
+                        this.$notification.open({
+                            message: '网络连接错误！',
+                            icon: <a-icon type="exclamation-circle" style="color: #FF434B" />
+                        });
                     })
             },
-        },
-        watch: {
-            // openKeys (val) {
-            //     //打开的菜单 sub1/sub2/sub1,sub2
-            //     console.log('openKeys', val)
-            // },
-        },
+        }
     }
 </script>
 
@@ -1140,7 +1177,7 @@
             flex-direction: row;
             justify-content: space-around;
             width: 94%;
-            margin: 0 auto 1rem auto;
+            margin: 0 auto 6rem auto;
             .column{
                 width: 18%;
                 text-align: center;

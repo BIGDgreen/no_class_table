@@ -5,7 +5,7 @@
             <div class="title">编辑课程</div>
         </div>
         <div class="editCourse_wrapper">
-            <div v-for="(edit_form,i) in edit_forms">
+            <div v-for="(edit_form,i) in edit_forms" :key="edit_form.id">
 <!--                <div :class="{changeColor:finishItem[i]}">-->
                     <a-divider orientation="left"><div class="number">{{i+1}}</div></a-divider>
 <!--                </div>-->
@@ -15,7 +15,7 @@
                         <div class="edit_class_course">
                             <div class="course_selection_wrapper">
                                 <div>
-                                    <a-select :defaultValue=edit_form.week @select="selectWeek($event,i)">
+                                    <a-select v-model="edit_form.week" @select="selectWeek($event,i)">
                                         <a-select-option value="周一">周一</a-select-option>
                                         <a-select-option value="周二">周二</a-select-option>
                                         <a-select-option value="周三">周三</a-select-option>
@@ -24,7 +24,7 @@
                                     </a-select>
                                 </div>
                                 <div class="course_selection_item">
-                                    <a-select :defaultValue=edit_form.period @change="selectPeriod($event,i)">
+                                    <a-select v-model="edit_form.period" @change="selectPeriod($event,i)">
                                         <a-select-option value="12">12</a-select-option>
                                         <a-select-option value="34">34</a-select-option>
                                         <a-select-option value="56">56</a-select-option>
@@ -41,11 +41,11 @@
                             </div>
                         </div>
                         <!-------------------------------------------课程周次---------------------------------------------->
-                        <div class="edit_class_week" v-for="(edit_week_form,j) in edit_form.edit_week_forms">
+                        <div class="edit_class_week" v-for="(edit_week_form,j) in edit_form.edit_week_forms" :key="edit_week_form.index">
                             <div class="week_selection_wrapper">
                                 <a-input-number :min="1" :max="19" v-model="edit_week_form.startWeek" @change="changeStartWeek($event,i,j)" />
                                 <div class="range_text">至</div>
-                                <a-input-number :min="2" :max="20" v-model="edit_week_form.endWeek" @change="changeEndWeek($event,i,j)" />
+                                <a-input-number :min="1" :max="20" v-model="edit_week_form.endWeek" @change="changeEndWeek($event,i,j)" />
                                 <div class="week_text">周</div>
                             </div>
                             <div class="buttons">
@@ -85,14 +85,14 @@
             let that = this;
             this.axios.get(this.baseUrl+'/course',{
                 params:{
-                    user_id:sessionStorage.getItem("user_id")
+                    user_id:localStorage.getItem("user_id")
                 },
                 headers:{
-                    'Authorization':sessionStorage.getItem('token'),
+                    'Authorization':localStorage.getItem('token'),
                 }
             })
                 .then((res) => {
-                    console.log("res",res);
+                    // console.log("res",res);
                     let data = res.data.data;
                     for (let i = 0 ; i < data.length ; i++){
                         //获取初始课表
@@ -126,7 +126,7 @@
                             });
                         }
                     }
-                    console.log("new_edit_forms",this.new_edit_forms);
+                    // console.log("edit_forms",this.edit_forms);
                 })
                 .catch((err) => {
                     console.log(err);
@@ -155,87 +155,71 @@
                             }
                             console.log("new_edit_forms",this.new_edit_forms);
                             this.loading = true;
-                            //删除原对象中的edit_forms，得到一个新的对象
+                            // 删除原对象中的edit_forms，得到一个新的对象
                             let real_edit_forms = [];
                             this.new_edit_forms.map((new_edit_form) => {
-                                real_edit_forms.push((({id, week, period, weeks_text, weeks}) => ({id, week, period, weeks_text, weeks}))(new_edit_form));
+                                if ( new_edit_form.period === "91011" ) {
+                                    console.log("---------------------");
+                                    real_edit_forms.push(
+                                        {
+                                            week: new_edit_form.week,
+                                            period: '910',
+                                            weeks_text: new_edit_form.weeks_text,
+                                            weeks: new_edit_form.weeks
+                                        },
+                                        {
+                                            week: new_edit_form.week,
+                                            period: '11',
+                                            weeks_text: new_edit_form.weeks_text,
+                                            weeks: new_edit_form.weeks
+                                        }
+                                    )
+                                } else {
+                                    real_edit_forms.push((({id, week, period, weeks_text, weeks}) => ({id, week, period, weeks_text, weeks}))(new_edit_form));
+                                }
                             });
                             console.log("real_edit_forms",real_edit_forms);
-                            console.log(JSON.stringify(real_edit_forms));
-                            // let success = [];
-                            //发送请求
-                            // for (let i = 0 ; i < this.edit_forms.length ; i ++){
-                            //     this.finishItem.push(false);
-                                let params = new URLSearchParams();
-                                // params.append('user_id',sessionStorage.getItem('user_id'));
-                                // params.append('period',this.edit_forms[i].selected_period);
-                                // params.append('week',this.edit_forms[i].selected_week);
-                                // params.append('weeks',this.edit_forms[i].selected_weeks.join(""));
-                                // params.append("weeks_text",this.edit_forms[i].selected_weeks_text.join());
-                                params.append('user_id',sessionStorage.getItem('user_id'));
-                                params.append("edit_forms_arr",JSON.stringify(real_edit_forms));
-                                params.append("_method","PUT");
-                                this.axios.post(this.baseUrl+'/course',params,{
-                                    headers:{
-                                        'Token':sessionStorage.getItem('token'),
-                                    }
-                                })
-                                    .then((res) => {
-                                        console.log("res",res);
-                                        //当前请求成功
-                                        // this.finishItem[i] = true;
-                                        if (res.data.status === "fail"){
-                                            let errMsg = res.data.data.errorMsg;
-                                            // success.push(false);
-                                            this.loading = false;
-                                            this.$notification.open({
-                                                message: errMsg,
-                                                icon: <a-icon type="exclamation-circle" style="color: #FF434B" />
-                                            });
-                                        } else {
-                                            setTimeout(() => {
-                                                this.loading = false;
-                                                //全局提示
-                                                this.$notification.open({
-                                                    message: '编辑成功',
-                                                    icon: <a-icon type="check-circle" style="color: #108ee9" />
-                                                });
-                                                //跳转到主页
-                                                this.$router.push({path:'/'});
-                                            },1500);
-                                        }
-                                    })
-                                    .catch((err) => {
-                                        console.log(err);
-                                        //如果当前请求失败
-                                        // success.push(false);
-                                        //向用户显示错误信息
+                            let params = new URLSearchParams();
+                            params.append('user_id',localStorage.getItem('user_id'));
+                            params.append("edit_forms_arr",JSON.stringify(real_edit_forms));
+                            params.append("_method","PUT");
+                            this.axios.post(this.baseUrl+'/course',params,{
+                                headers:{
+                                    'Token':localStorage.getItem('token'),
+                                }
+                            })
+                                .then((res) => {
+                                    // console.log("res",res);
+                                    if (res.data.status === "fail"){
+                                        let errMsg = res.data.data.errorMsg;
+                                        this.loading = false;
                                         this.$notification.open({
-                                            message: '发生未知错误，请再试一次！',
+                                            message: errMsg,
                                             icon: <a-icon type="exclamation-circle" style="color: #FF434B" />
                                         });
-                                        this.loading = false;
+                                    } else {
+                                        setTimeout(() => {
+                                            this.loading = false;
+                                            //全局提示
+                                            this.$notification.open({
+                                                message: '编辑成功',
+                                                icon: <a-icon type="check-circle" style="color: #108ee9" />
+                                            });
+                                            //跳转到主页
+                                            this.$router.push({path:'/'});
+                                        },1500);
+                                    }
+                                })
+                                .catch((err) => {
+                                    // console.log(err);
+                                    // 当前请求失败，向用户显示错误信息
+                                    this.$notification.open({
+                                        message: '发生未知错误，请再试一次！',
+                                        icon: <a-icon type="exclamation-circle" style="color: #FF434B" />
                                     });
-                            }
-                            // console.log("success",success);
-                            // if (success.length === 0){
-                            //     //所有请求都发送成功
-                            //     setTimeout(() => {
-                            //         this.loading = false;
-                            //         //全局提示
-                            //         this.$notification.open({
-                            //             message: '编辑成功',
-                            //             icon: <a-icon type="check-circle" style="color: #108ee9" />
-                            //         });
-                            //         //跳转到主页
-                            //         this.$router.push({path:'/'});
-                            //     },1500);
-                            //
-                            // } else {
-                            //     this.$notification.open({
-                            //         message: errMsg,
-                            //         icon: <a-icon type="exclamation-circle" style="color: #FF434B" />
-                            //     });
+                                    this.loading = false;
+                                });
+                        }
                     },
                 );
             },
@@ -289,9 +273,18 @@
                 });
             },
             lessClass(i){
+                // debugger;
+                // if (console.log(this.edit_forms.length)) {
+                //     console.log("i",i);
+                //     console.log("edit_forms",this.edit_forms);
                 //删除课程
-                this.edit_forms.splice(i,1);
-                 //将删除的课程id传给存入数组,其余元素置空
+                if (i > 0) {
+                    this.edit_forms.splice(i,1);
+                }
+
+                // console.log(this.edit_forms.length)
+
+                //将删除的课程id传给存入数组,其余元素置空
                 this.new_edit_forms[i] = {
                     id:this.new_edit_forms[i].id,
                     week:null,
@@ -301,31 +294,47 @@
                     edit_week_forms: null
                 }
             },
-            plusWeek(i,j){
-                //同一课程，添加周次
-                this.edit_forms[i].edit_week_forms.push({
-                    index:j+1,
-                    startWeek:this.edit_forms[i].edit_week_forms[j].endWeek + 1,
-                    endWeek:this.edit_forms[i].edit_week_forms[j].endWeek + 2
+            plusWeek(i,j) {
+                let edit_week_forms = this.edit_forms[i].edit_week_forms;
+                // 同一课程，添加周次
+                edit_week_forms.push({
+                    index: j + 1,
+                    startWeek: parseInt(edit_week_forms[j].endWeek) + 2,
+                    endWeek: parseInt(edit_week_forms[j].endWeek) + 3
                 });
+                // console.log("添加edit_week_forms",edit_week_forms);
+
+                // 数组去重
+                for (let m = 0; m < edit_week_forms.length - 1; m++) {
+                    for (let n = m + 1; n < edit_week_forms.length; n++) {
+                        if (edit_week_forms[m].index === edit_week_forms[n].index) {
+                            // 删除第n项
+                            this.$delete(edit_week_forms, n);
+                        }
+                    }
+                }
+
                 this.new_edit_forms[i].edit_week_forms.push({
-                    index:j+1,
-                    startWeek:this.new_edit_forms[i].edit_week_forms[j].endWeek + 1,
-                    endWeek:this.new_edit_forms[i].edit_week_forms[j].endWeek + 2
+                    index: j+1,
+                    startWeek: parseInt(this.new_edit_forms[i].edit_week_forms[j].endWeek) + 2,
+                    endWeek: parseInt(this.new_edit_forms[i].edit_week_forms[j].endWeek) + 3
                 });
             },
             lessWeek(i,j){
-                console.log(i,j);
+                // console.log(i,j);
                 //同一课程，删除周次
-                this.edit_forms[i].edit_week_forms.splice(j,1);
+                // 删除数组中的第j项
+                this.$delete(this.edit_forms[i].edit_week_forms, j);
+                // this.edit_forms[i].edit_week_forms.splice(j,1);
+                // console.log("删除edit_week_forms",this.edit_forms[i].edit_week_forms);
                 //将删除周次的课程id传给存入数组
                 this.new_edit_forms[i] = {
-                    id:this.new_edit_forms[i].id,
-                    week:this.new_edit_forms[i].week,
-                    period:this.new_edit_forms[i].period,
-                    weeks_text:this.new_edit_forms[i].weeks_text,
-                    weeks:this.new_edit_forms[i].weeks,
-                    edit_week_forms:this.edit_forms[i].edit_week_forms  //传入删除周次后的周次
+                    id: this.new_edit_forms[i].id,
+                    week: this.new_edit_forms[i].week,
+                    period: this.new_edit_forms[i].period,
+                    weeks_text: this.new_edit_forms[i].weeks_text,
+                    weeks: this.new_edit_forms[i].weeks,
+                    edit_week_forms: this.edit_forms[i].edit_week_forms  //传入删除周次后的周次
                 }
             },
         }

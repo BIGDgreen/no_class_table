@@ -34,23 +34,11 @@ import Carousel from 'ant-design-vue/lib/carousel'
 import Spin from 'ant-design-vue/lib/spin'
 import Switch from 'ant-design-vue/lib/switch'
 import 'ant-design-vue/dist/antd.css'
-Vue.use(DropDown);
-Vue.use(Menu);
-Vue.use(Icon);
-Vue.use(Modal);
-Vue.use(Button);
-Vue.use(Form);
-Vue.use(Input);
-Vue.use(InputNumber);
-Vue.use(Select);
-Vue.use(Divider);
-Vue.use(Carousel);
-Vue.use(Spin);
-Vue.use(Switch);
+Vue.use(DropDown).use(Menu).use(Icon).use(Modal).use(Button).use(Form).use(Input).use(InputNumber).use(Select).use(Divider).use(Carousel).use(Spin).use(Switch);
 
 // Vue.prototype.baseUrl='http://10.111.144.242:8688';
-Vue.prototype.baseUrl='http://39.106.92.171:8688';//服务器
-// Vue.prototype.baseUrl='http://192.168.0.130:8688'; //2A311
+Vue.prototype.baseUrl='http://47.92.198.164:8688';//服务器
+// Vue.prototype.baseUrl='http://192.168.0.109:8688'; //2A311
 
 Vue.config.productionTip = false;
 

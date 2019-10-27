@@ -30,7 +30,7 @@
                 //发送请求，提交用户输入的新密码
                 let params = new URLSearchParams();
                 params.append('password',password);  //用户输入的新密码
-                params.append('sms_key',sessionStorage.getItem('login_key'));
+                params.append('sms_key',localStorage.getItem('login_key'));
                 params.append('tel',this.$route.params.tel);
                 this.axios.post(this.baseUrl+'user/resetPassword',params)
                     .then((res) => {

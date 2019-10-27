@@ -73,7 +73,7 @@
                     .then((res) => {
                         console.log(res);
                         if (res.data.status === 'success'){
-                            sessionStorage.setItem('login_key',res.data.data);
+                            localStorage.setItem('login_key',res.data.data);
                             // 跳转到设置账号密码登录页面
                             this.$router.push({
                                 name: "resetPassword",

@@ -43,7 +43,7 @@
                             <div class="week_selection_wrapper">
                                 <a-input-number :min="1" :max="19" v-model="add_week_form.startWeek"/>
                                 <div class="range_text">至</div>
-                                <a-input-number :min=add_week_form.startWeek+1 :max="20" v-model="add_week_form.endWeek"/>
+                                <a-input-number :min="1" :max="20" v-model="add_week_form.endWeek"/>
                                 <div class="week_text">周</div>
                             </div>
                             <div class="buttons">
@@ -94,35 +94,6 @@
                 // 返回主页
                 this.$router.push({path:'/'});
             },
-            judgeExist(){
-                let that = this;
-                this.axios.get(this.baseUrl+'/course',{
-                    params:{
-                        user_id:sessionStorage.getItem("user_id")
-                    },
-                    headers:{
-                        'Authorization':sessionStorage.getItem('token'),
-                    }
-                })
-                    .then((res) => {
-                        res.data.data.map((course) => {
-                            that.add_forms.map((add_form) => {
-                                if (add_form.week === course.week && add_form.period === course.period) {
-                                    //课程已存在，不能添加
-                                    //全局提示
-                                    this.$notification.open({
-                                        message: `${add_form.week}的${add_form.period}已存在，不能重复添加（如有需要，请在编辑里修改）`,
-                                        icon: <a-icon type="exclamation-circle" style="color: #FF434B" />
-                                    });
-                                    this.loading = false;
-                                }
-                            })
-                        });
-                    })
-                    .catch((err) => {
-                        console.log(err);
-                    })
-            },
             submit(){
                 // console.log("after_add_forms",JSON.stringify(this.add_forms));
                 //提交
@@ -130,10 +101,6 @@
                     (err) => {
                         if (!err) {
                             let that = this;
-                            // let success = [];
-                            console.log("add_forms",this.add_forms);
-                            //判断用户添加的课程是否已经存在
-                            this.judgeExist();
                             //将用户输入的起止周转化为20个01形式
                             for (let i = 0 ; i < this.add_forms.length ; i++){
                                 for (let j = 0 ; j < this.add_forms[i].add_week_forms.length ; j++){
@@ -145,44 +112,50 @@
                                 this.add_forms[i].weeks = this.add_forms[i].weeks.join("");
                                 this.add_forms[i].weeks_text = this.add_forms[i].weeks_text.join();
                             }
-                            console.log("after_edit",this.add_forms);
+                            // console.log("add_forms",this.add_forms);
                             this.loading = true;//按钮进入加载状态
                             //删除原对象中的add_week_forms，得到一个新的对象
                             let new_add_forms = [];
+                            // 发送两次请求，分别添加910节课和11节课
                             this.add_forms.map((add_form) => {
-                                new_add_forms.push((({week, period, weeks_text, weeks}) => ({week, period, weeks_text, weeks}))(add_form));
+                                if ( add_form.period === '91011' ) {
+                                    new_add_forms.push(
+                                        {
+                                            week: add_form.week,
+                                            period: '910',
+                                            weeks_text: add_form.weeks_text,
+                                            weeks: add_form.weeks
+                                        },
+                                        {
+                                            week: add_form.week,
+                                            period: '11',
+                                            weeks_text: add_form.weeks_text,
+                                            weeks: add_form.weeks
+                                        }
+                                    )
+                                } else {
+                                    new_add_forms.push((({week, period, weeks_text, weeks}) => ({week, period, weeks_text, weeks}))(add_form));
+                                }
                             });
-                            console.log("new_add_forms",new_add_forms);
+                            // console.log("new_add_forms",new_add_forms);
+
                             //发送请求，将用户添加的课程以数组的形式发给后端
                             let params = new URLSearchParams();
                             params.append("add_forms_arr",JSON.stringify(new_add_forms));
-                            params.append("user_id",sessionStorage.getItem("user_id"));
+                            params.append("user_id",localStorage.getItem("user_id"));
                             this.axios.post(this.baseUrl+'/course',params,{
                                 headers:{
-                                    'Token':sessionStorage.getItem('token')
+                                    'Token':localStorage.getItem('token')
                                 }
                             })
-                                // for (let i = 0 ; i < this.add_forms.length ; i ++){
-                                //     // this.finishItem.push(false);
-                                //     let params = new URLSearchParams();
-                                //     params.append('user_id',sessionStorage.getItem('user_id'));
-                                //     params.append('period',this.add_forms[i].selected_period);
-                                //     params.append('week',this.add_forms[i].selected_week);
-                                //     params.append('weeks',this.add_forms[i].selected_weeks.join(""));
-                                //     params.append("weeks_text",this.add_forms[i].selected_weeks_text.join());
-                                //     this.axios.post(this.baseUrl+'/course',params,{
-                                //         headers:{
-                                //             'Token':sessionStorage.getItem('token'),
-                                //         }
-                                //     })
                                 .then((res) => {
-                                    console.log("res",res);
+                                    // console.log("res",res);
                                     if (res.data.status === "fail"){
                                         //显示错误信息
                                         this.$notification.open({
                                             message: res.data.data.errorMsg,
                                             icon: <a-icon type="exclamation-circle" style="color: #FF434B" />
-                                        });
+                                        })
                                         this.loading = false;
                                     } else {
                                         //请求发送成功
@@ -193,39 +166,23 @@
                                             that.$notification.open({
                                                 message: '添加成功',
                                                 icon: <a-icon type="check-circle" style="color: #108ee9" />
-                                            });
+                                            })
                                             //跳转到主页
                                             that.$router.push({path:'/'});
                                         },1500);
                                     }
                                 })
                                 .catch((err) => {
-                                    console.log(err);
+                                    // console.log(err);
                                     //请求失败，向用户显示错误信息
                                     this.$notification.open({
                                         message: '发生未知错误，请再试一次！',
                                         icon: <a-icon type="exclamation-circle" style="color: #FF434B" />
-                                    });
+                                    })
                                     this.loading = false;
                                 })
-                            // if (success.length === 0){            //请求全部成功
-                            //     //所有请求都发送成功
-                            //     setTimeout(() => {
-                            //         this.loading = false;
-                            //         //全局提示
-                            //         this.$notification.open({
-                            //             message: '添加成功',
-                            //             icon: <a-icon type="check-circle" style="color: #108ee9" />
-                            //     });
-                            //         //跳转到主页
-                            //         this.$router.push({path:'/'});
-                            //     },1500);
-                            // } else {
-                            //     this.$notification.open({
-                            //         message: errMsg,
-                            //         icon: <a-icon type="exclamation-circle" style="color: #FF434B" />
-                            //     });
-                            // }
+                        } else {
+                            console.log(err);
                         }
                     },
                 );
@@ -266,12 +223,12 @@
                 //同一课程，添加周次
                 this.add_forms[i].add_week_forms.push({
                     index:j+1,
-                    startWeek:this.add_forms[i].add_week_forms[j].endWeek + 1,
-                    endWeek:this.add_forms[i].add_week_forms[j].endWeek + 2
+                    startWeek:this.add_forms[i].add_week_forms[j].endWeek + 2,
+                    endWeek:this.add_forms[i].add_week_forms[j].endWeek + 3
                 });
             },
             lessWeek(i,j){
-                console.log(i,j);
+                // console.log(i,j);
                 //同一课程，删除周次
                 this.add_forms[i].add_week_forms.splice(j,1)
             },

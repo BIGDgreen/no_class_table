@@ -1,4 +1,4 @@
-<template>
+<template xmlns:v-slot="http://www.w3.org/1999/XSL/Transform">
     <div class="login">
         <bm_login :base-config="myConfig"
                   v-on:register="to_register"
@@ -40,11 +40,11 @@
         methods:{
             //根据配置自行选择需要的方法
             to_register(){
-              this.$router.push({path:'/phoneRegister'})
+              this.$router.push({name:'phoneRegister'});
             },
             to_forgetPassword(){
                 //进入忘记密码页面
-                this.$router.push({path:'/forgetPassword'});
+                this.$router.push({name:'forgetPassword'});
             },
             login(input_info){
                 //登录
@@ -56,11 +56,11 @@
                     .then((res) => {
                         console.log("res",res);
                         //保存user_id
-                        sessionStorage.setItem("user_id",res.data.name);
+                        localStorage.setItem("user_id",res.data.name);
                         //保存登录状态
-                        sessionStorage.setItem("logined",res.data.authenticated);
+                        localStorage.setItem("logined",res.data.authenticated);
                         //保存token
-                        sessionStorage.setItem("token",res.headers.token);
+                        localStorage.setItem("token",res.headers.token);
                         if (res.data.authenticated){
                             this.$router.push({path:'/'});
                         } else{
