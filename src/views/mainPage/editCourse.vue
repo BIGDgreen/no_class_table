@@ -185,7 +185,7 @@
                             params.append("_method","PUT");
                             this.axios.post(this.baseUrl+'/course',params,{
                                 headers:{
-                                    'Token':localStorage.getItem('token'),
+                                    'Authorization':localStorage.getItem('token'),
                                 }
                             })
                                 .then((res) => {

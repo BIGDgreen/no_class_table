@@ -198,9 +198,9 @@
                         </a-form>
                         <div class="inviteCode" v-if="inviteSuccess">您的邀请码为：<br>
                             <div class="codeGroup" style="text-align: center;">
-                                <pre v-for="code in inviteCodes" style="font-weight: bold;color:red;">
+                                <b v-for="code in inviteCodes" style="color:red;">
                                     {{code}}<br>
-                                </pre>
+                                </b>
                             </div>
                         </div>
                     </a-modal>
@@ -673,22 +673,31 @@
                                 }
                             })
                                 .then((res) => {
-                                    // console.log(res);
+                                    console.log("”创建组织",res);
+                                    if (res.data.status === 'success') {
+                                        //全局提示
+                                        this.$notification.open({
+                                            message: '创建成功',
+                                            icon: <a-icon type="check-circle" style="color: #108ee9" />
+                                        });
+                                        this.inviteSuccess = true;
+                                        // this.inviteCode = res.data.data.groupKey;
+                                        res.data.data.map((branch,index) => {
+                                            this.inviteCodes[index] = branch.groupKey;
+                                        })
+                                    } else {
+                                        //全局提示
+                                        this.$notification.open({
+                                            message: res.data.data.errorMsg,
+                                            icon: <a-icon type="exclamation-circle" style="color: #FF434B" />
+                                        });
+                                        this.visibleCreate = false;
+                                    }
                                     this.loading = false;
                                     this.disabled = true;
-                                    //全局提示
-                                    this.$notification.open({
-                                        message: '创建成功',
-                                        icon: <a-icon type="check-circle" style="color: #108ee9" />
-                                    });
-                                    this.inviteSuccess = true;
-                                    // this.inviteCode = res.data.data.groupKey;
-                                    res.data.data.map((branch,index) => {
-                                        this.inviteCodes[index] = branch.groupKey;
-                                    })
                                 })
                                 .catch((err) => {
-                                    // console.log(err);
+                                    console.log(err);
                                     this.loading = false;
                                     //全局提示
                                     this.$notification.open({
@@ -707,17 +716,8 @@
                     (err) => {
                         if (!err) {
                             // console.info('success');
+                            // 按钮进入加载状态
                             this.loading = true;
-                            //全局提示
-                            this.$notification.open({
-                                message: '加入成功',
-                                icon: <a-icon type="check-circle" style="color: #108ee9" />
-                            });
-                            //按钮进入加载状态
-                            setTimeout(() => {
-                                this.visibleJoin = false;
-                                this.loading = false;
-                            }, 2000);
                             //发送请求
                             let params = new URLSearchParams();
                             params.append('_method','PUT');
@@ -729,16 +729,35 @@
                                 }
                             })
                                 .then((res) => {
-                                    // console.log(res);
-                                    //刷新页面
-                                    this.$router.push({path:"111"});
-                                    this.$router.go(-1);
+                                    console.log(res);
+                                    //全局提示
+                                    if (res.data.status === 'success') {
+                                        this.$notification.open({
+                                            message: '加入成功',
+                                            icon: <a-icon type="check-circle" style="color: #108ee9" />
+                                        });
+                                        // 关闭弹出框
+                                        this.visibleJoin = false;
+                                        //刷新页面
+                                        this.$router.push({path:"111"});
+                                        this.$router.go(-1);
+                                    } else {
+                                        this.$notification.open({
+                                            message: '该组织不存在！',
+                                            icon: <a-icon type="exclamation-circle" style="color: #FF434B" />
+                                        });
+                                    }
+                                    // 取消按钮加载状态
+                                    this.loading = false;
                                 })
                                 .catch((err) => {
                                     this.$notification.open({
                                         message: '网络连接错误！',
                                         icon: <a-icon type="exclamation-circle" style="color: #FF434B" />
                                     });
+
+                                    this.visibleJoin = false;
+                                    this.loading = false;
                                 })
                         }
                     },
@@ -778,6 +797,9 @@
             viewMember(){
                 this.visibleMember = true;
                 this.axios.get(this.baseUrl+'/group/users',{
+                    headers:{
+                        'Authorization':localStorage.getItem('token'),
+                    },
                     params:{
                         id:this.this_part.id,
                         user_id:localStorage.getItem("user_id")

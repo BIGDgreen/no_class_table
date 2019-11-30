@@ -112,7 +112,7 @@
                                 this.add_forms[i].weeks = this.add_forms[i].weeks.join("");
                                 this.add_forms[i].weeks_text = this.add_forms[i].weeks_text.join();
                             }
-                            // console.log("add_forms",this.add_forms);
+                            console.log("add_forms",this.add_forms);
                             this.loading = true;//按钮进入加载状态
                             //删除原对象中的add_week_forms，得到一个新的对象
                             let new_add_forms = [];
@@ -145,11 +145,11 @@
                             params.append("user_id",localStorage.getItem("user_id"));
                             this.axios.post(this.baseUrl+'/course',params,{
                                 headers:{
-                                    'Token':localStorage.getItem('token')
+                                    'Authorization':localStorage.getItem('token')
                                 }
                             })
                                 .then((res) => {
-                                    // console.log("res",res);
+                                    console.log("添加课程res",res);
                                     if (res.data.status === "fail"){
                                         //显示错误信息
                                         this.$notification.open({

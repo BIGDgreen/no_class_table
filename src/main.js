@@ -37,8 +37,8 @@ import 'ant-design-vue/dist/antd.css'
 Vue.use(DropDown).use(Menu).use(Icon).use(Modal).use(Button).use(Form).use(Input).use(InputNumber).use(Select).use(Divider).use(Carousel).use(Spin).use(Switch);
 
 // Vue.prototype.baseUrl='http://10.111.144.242:8688';
-Vue.prototype.baseUrl='http://47.92.198.164:8688';//服务器
-// Vue.prototype.baseUrl='http://192.168.0.109:8688'; //2A311
+Vue.prototype.baseUrl='http://192.168.0.109:8688'; //2A311
+// Vue.prototype.baseUrl='http://47.92.198.164:8688';//服务器
 
 Vue.config.productionTip = false;
 
@@ -46,4 +46,4 @@ new Vue({
   router,
   store,
   render: h => h(App)
-}).$mount('#app')
+}).$mount('#app');
