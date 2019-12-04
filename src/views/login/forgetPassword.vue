@@ -52,7 +52,7 @@
                 params.append('tel',tel);
                 params.append('action','reset');
                 //发送请求
-                this.axios.post(this.baseUrl+'/sys/sms/send',params)
+                this.$axios.post(this.baseUrl+'/sys/sms/send',params)
                     .then((res) => {
                         console.log(res);
                     })
@@ -69,7 +69,7 @@
                 params.append('code',inputInfo.code);
                 params.append('_method','PUT');
                 //发送请求
-                this.axios.post(this.baseUrl+'/sys/sms/validate',params)
+                this.$axios.post(this.baseUrl+'/sys/sms/validate',params)
                     .then((res) => {
                         console.log(res);
                         if (res.data.status === 'success'){

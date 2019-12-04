@@ -25,7 +25,6 @@
             return{
                 countryTel:"",
                 myConfig: {
-                    //根据需要自行修改
                     code_length:6,
                     accountLogin:true,
                     changedPhone: false,
@@ -52,7 +51,7 @@
                 params.append('tel',tel);
                 params.append('action','register');
                 //发送请求
-                this.axios.post(this.baseUrl+'/sys/sms/send',params)
+                this.$axios.post(this.baseUrl+'/sys/sms/send',params)
                     .then((res) => {
                         console.log(res);
                         let errorMsg = "";
@@ -82,7 +81,7 @@
                 params.append('code',inputInfo.code);
                 params.append('_method','PUT');
                 //发送请求
-                this.axios.post(this.baseUrl+'/sys/sms/validate',params)
+                this.$axios.post(this.baseUrl+'/sys/sms/validate',params)
                 // this.axios.put(this.baseUrl+`/sys/sms/validate?tel=${inputInfo.phone}&code=${inputInfo.code}`)
                     .then((res) => {
                         console.log(res);

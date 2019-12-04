@@ -50,7 +50,7 @@
         params.append('password',input_info.password);
         params.append('sms_key',localStorage.getItem('login_key'));
         params.append('tel',this.$route.params.tel);
-        this.axios.post(this.baseUrl+'/user',params)
+        this.$axios.post(this.baseUrl+'/user',params)
             .then((res) => {
               console.log(res);
               if (res.data.status === 'success'){

@@ -156,7 +156,16 @@
                                     :wrapper-col="formItemLayout.wrapperCol"
                                     label="组织/部门名称">
                                 &nbsp;&nbsp;&nbsp;&nbsp;
-                                {{selectedOrg.substr(4,selectedOrg.length-4)+selectedPart.substr(5,selectedPart.length-5)||selectedOrg.substr(4,selectedOrg.length-4)||"尚未选择组织/部门！"}}
+<!--                                <span v-if="selectedOrg && !selectedPart">-->
+<!--                                    {{selectedOrg.substr(4,selectedOrg.length-4)}}-->
+<!--                                </span>-->
+<!--                                <span v-else-if="selectedOrg && selectedPart">-->
+<!--                                    {{`${selectedOrg.substr(4,selectedOrg.length-4)},${selectedPart.substr(5,selectedPart.length-5)}`}}-->
+<!--                                </span>-->
+<!--                                <span v-else-if="!selectedOrg && !selectedPart">-->
+<!--                                    尚未选择组织/部门！-->
+<!--                                </span>-->
+                                {{`${selectedOrg.substr(4,selectedOrg.length-4)},${selectedPart.substr(5,selectedPart.length-5)}`||selectedOrg.substr(4,selectedOrg.length-4)||"尚未选择组织/部门！"}}
                             </a-form-item>
                             <a-form-item
                                     :label-col="formItemLayout.labelCol"
@@ -356,9 +365,9 @@
               params:{
                   user_id:localStorage.getItem("user_id")
               },
-               headers:{
-                    'Authorization':localStorage.getItem('token'),
-                }
+               // headers:{
+               //      'Authorization':localStorage.getItem('token'),
+               //  }
             })
                 .then((res) => {
                     // console.log("myClass",res);
@@ -368,12 +377,12 @@
                     }
                 })
                 .catch((err) => {
-                    // console.log(err);
+                    console.error(err);
                     //全局提示
-                    this.$notification.open({
-                        message: '网络连接错误！',
-                        icon: <a-icon type="exclamation-circle" style="color: #FF434B" />
-                    });
+                    // this.$notification.open({
+                    //     message: '网络连接错误！',
+                    //     icon: <a-icon type="exclamation-circle" style="color: #FF434B" />
+                    // });
                 });
             //获取我管理的组织
             this.getManageData();
@@ -497,8 +506,8 @@
                                 }
                             ]
                         });
-                    } else if(i > 0) {   //从第二项开始
-                        let different = []; //当有重复组织时，push false
+                    } else if(i > 0) {   // 从第二项开始
+                        let different = []; // 当有重复组织时，push false
                         //组织去重
                         for(let k = 0 ; k < i ; k++){       //从第二项开始,当前项与当前项之前的所有项进行比较
                             if (data[i].groupName === data[k].groupName) {  //该组织名出现过
@@ -535,9 +544,9 @@
                     params:{
                         user_id:localStorage.getItem('user_id')
                     },
-                    headers:{
-                        'Authorization':localStorage.getItem('token'),
-                    }
+                    // headers:{
+                    //     'Authorization':localStorage.getItem('token'),
+                    // }
                 })
                     .then((res) => {
                         // console.log("manage",res);
@@ -545,10 +554,11 @@
                         // console.log("my_manage_groups",this.manage_groups);
                     })
                     .catch((err) => {
-                        this.$notification.open({
-                            message: '网络连接错误！',
-                            icon: <a-icon type="exclamation-circle" style="color: #FF434B" />
-                        });
+                        console.error(err);
+                        // this.$notification.open({
+                        //     message: '网络连接错误！',
+                        //     icon: <a-icon type="exclamation-circle" style="color: #FF434B" />
+                        // });
                     });
             },
             //获取我加入的组织
@@ -558,9 +568,9 @@
                     params:{
                         user_id:localStorage.getItem('user_id')
                     },
-                    headers:{
-                        'Authorization':localStorage.getItem('token'),
-                    }
+                    // headers:{
+                    //     'Authorization':localStorage.getItem('token'),
+                    // }
                 })
                     .then((res) => {
                         // console.log("join",res);
@@ -568,37 +578,38 @@
                         // console.log("my_join",this.join_groups);
                     })
                     .catch((err) => {
-                        that.$notification.open({
-                            message: '网络连接错误！',
-                            icon: <a-icon type="exclamation-circle" style="color: #FF434B" />
-                        });
+                        console.error(err);
+                        // that.$notification.open({
+                        //     message: '网络连接错误！',
+                        //     icon: <a-icon type="exclamation-circle" style="color: #FF434B" />
+                        // });
                     })
             },
             //将数据转化为课表，呈现出来
             dataToClass(res){
-                this.defaultWeek = '第一周';
                 // console.info("class",res);
                 let that = this;
                 this.courses.map((courseItem) => {
                     res.map((item) => {
                         if (item.week === courseItem.weekday){
                             let courseNum = this.periodToNum(item.period) - 1;  // 将节次转换为数字
+                            // console.log(item.weeksText);
                             let item_value = item.weeksText || item.username.join();  // 表格里的内容（节次或者人名）
+                            let item_value_arr = item_value.split(',');
                             // console.log(item_value);
-                            if (item.username !== undefined && item.username !== null) {
+                            if (item.username !== undefined && item.username !== null) {       // 表格里为人名
                                 // 将人名按字典树排序
-                                let item_value_arr = item_value.split(',');
                                 item_value_arr.sort((a,b) => {
                                     return a.localeCompare(b);
                                 });
-                                // 每个人名后面都加换行符
-                                let str = '';
-                                for(let i = 0; i < item_value_arr.length; i++) {
-                                    str += item_value_arr[i];
-                                    str += `\n`;
-                                }
-                                item_value = str;
                             }
+                            // 给表格内容换行
+                            let str = '';
+                            for(let i = 0; i < item_value_arr.length; i++) {
+                                str += item_value_arr[i];
+                                str += `\n`;
+                            }
+                            item_value = str;
                             if (courseNum === 5){    // 第11节课
                                 that.$set(courseItem.classes,courseNum-1,item_value);
                                 that.$set(courseItem.classes,courseNum,item_value);
@@ -667,11 +678,13 @@
                             params.append("branch_name",input_create_parts.join());
                             params.append("name",this.form.getFieldValue('create_orgName'));
                             params.append("user_id",localStorage.getItem("user_id"));
-                            this.axios.post(this.baseUrl+'/group',params,{
-                                headers:{
-                                    'Authorization':localStorage.getItem('token'),
-                                }
-                            })
+                            this.axios.post(this.baseUrl+'/group',params
+                                // ,{
+                                //     headers:{
+                                //         'Authorization':localStorage.getItem('token'),
+                                //     }
+                                // }
+                            )
                                 .then((res) => {
                                     console.log("”创建组织",res);
                                     if (res.data.status === 'success') {
@@ -723,11 +736,13 @@
                             params.append('_method','PUT');
                             params.append('key',this.form.getFieldValue('join_partName'));
                             params.append('user_id',localStorage.getItem("user_id"));
-                            this.axios.post(this.baseUrl+'/group/apply',params,{
-                                headers:{
-                                    'Authorization':localStorage.getItem('token'),
-                                }
-                            })
+                            this.axios.post(this.baseUrl+'/group/apply',params
+                                // ,{
+                                //     headers:{
+                                //         'Authorization':localStorage.getItem('token'),
+                                //     }
+                                // }
+                            )
                                 .then((res) => {
                                     console.log(res);
                                     //全局提示
@@ -751,10 +766,11 @@
                                     this.loading = false;
                                 })
                                 .catch((err) => {
-                                    this.$notification.open({
-                                        message: '网络连接错误！',
-                                        icon: <a-icon type="exclamation-circle" style="color: #FF434B" />
-                                    });
+                                    console.error(err);
+                                    // this.$notification.open({
+                                    //     message: '网络连接错误！',
+                                    //     icon: <a-icon type="exclamation-circle" style="color: #FF434B" />
+                                    // });
 
                                     this.visibleJoin = false;
                                     this.loading = false;
@@ -797,9 +813,9 @@
             viewMember(){
                 this.visibleMember = true;
                 this.axios.get(this.baseUrl+'/group/users',{
-                    headers:{
-                        'Authorization':localStorage.getItem('token'),
-                    },
+                    // headers:{
+                    //     'Authorization':localStorage.getItem('token'),
+                    // },
                     params:{
                         id:this.this_part.id,
                         user_id:localStorage.getItem("user_id")
@@ -812,10 +828,11 @@
                         }
                     })
                     .catch((err) => {
-                        this.$notification.open({
-                            message: '网络连接错误！',
-                            icon: <a-icon type="exclamation-circle" style="color: #FF434B" />
-                        });
+                        console.error(er);
+                        // this.$notification.open({
+                        //     message: '网络连接错误！',
+                        //     icon: <a-icon type="exclamation-circle" style="color: #FF434B" />
+                        // });
                     })
             },
             /*******************************************************************左拉菜单*************************************************************/
@@ -858,9 +875,9 @@
                                                 id:this_part.id,
                                                 user_id:localStorage.getItem('user_id')
                                             },
-                                            headers:{
-                                                'Authorization':localStorage.getItem('token'),
-                                            }
+                                            // headers:{
+                                            //     'Authorization':localStorage.getItem('token'),
+                                            // }
                                         })
                                             .then((res) => {
                                                 //刷新页面
@@ -868,10 +885,10 @@
                                                 this.$router.go(-1);
                                             })
                                             .catch((err) => {
-                                                this.$notification.open({
-                                                    message: '网络连接错误！',
-                                                    icon: <a-icon type="exclamation-circle" style="color: #FF434B" />
-                                                });
+                                                // this.$notification.open({
+                                                //     message: '网络连接错误！',
+                                                //     icon: <a-icon type="exclamation-circle" style="color: #FF434B" />
+                                                // });
                                             })
                                     }
                                     //全局提示
@@ -942,9 +959,9 @@
                         user_id:localStorage.getItem('user_id'),
                         weeks:1  //默认第一周
                     },
-                    headers:{
-                        'Authorization':localStorage.getItem('token'),
-                    }
+                    // headers:{
+                    //     'Authorization':localStorage.getItem('token'),
+                    // }
                 })
                     .then((res) => {
                         //选择周次可见
@@ -958,10 +975,10 @@
                     })
                     .catch((err) => {
                         // console.log("err",err);
-                        this.$notification.open({
-                            message: '网络连接错误！',
-                            icon: <a-icon type="exclamation-circle" style="color: #FF434B" />
-                        });
+                        // this.$notification.open({
+                        //     message: '网络连接错误！',
+                        //     icon: <a-icon type="exclamation-circle" style="color: #FF434B" />
+                        // });
                         this.isLoad = false;
                     })
             },
@@ -987,7 +1004,8 @@
             onClick_week(key) {
                 this.isLoad = true;
                 let k = key.key; //用户选择的周次
-                // console.log(k+1);
+                // console.log(k);
+                // console.log(this.weeknums);
                 this.defaultWeek = this.weeknums[k];
                 //发送请求
                 this.axios.get(this.baseUrl + '/course/no_class/group/'+this.this_part.id,{
@@ -996,9 +1014,9 @@
                         user_id:localStorage.getItem("user_id"),
                         weeks:k+1
                     },
-                    headers:{
-                        'Authorization':localStorage.getItem('token'),
-                    }
+                    // headers:{
+                    //     'Authorization':localStorage.getItem('token'),
+                    // }
                 })
                     .then((res) => {
                         this.courses = [
@@ -1029,10 +1047,10 @@
                         this.isLoad = false;
                     })
                     .catch((err) => {
-                        this.$notification.open({
-                            message: '网络连接错误！',
-                            icon: <a-icon type="exclamation-circle" style="color: #FF434B" />
-                        });
+                        // this.$notification.open({
+                        //     message: '网络连接错误！',
+                        //     icon: <a-icon type="exclamation-circle" style="color: #FF434B" />
+                        // });
                     })
             },
         }

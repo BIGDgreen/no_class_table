@@ -66,11 +66,11 @@ Vue.use(Router);
 });
 
 routerMap.beforeEach((to,from,next) => {
-  const logined = !!localStorage.getItem("logined");
+  const logined = localStorage.getItem("logined");
   if ( to.path !== '/' && to.path !== '/addCourse' && to.path !== '/editCourse' ) {   // 与登录注册有关的页面可以直接跳转
     next();
   } else {
-      if (logined) {
+    if (logined === "true") {
         next();
       } else {
         next("/login");

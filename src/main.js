@@ -2,8 +2,10 @@ import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
 import store from './store'
-import axios from 'axios'
+import axios from './utils/http'  // 含headers的请求
+import $axios from 'axios'  // 不含headers的请求
 Vue.prototype.axios = axios;
+Vue.prototype.$axios = $axios;
 //引入图标
 import './assets/css/iconfont.css'
 //引入悬浮菜单组件
@@ -12,8 +14,8 @@ Vue.use(VueFab,{
   iconType:'iconfont'
 });
 //引入登录组件
-import bm_Vlogin from 'bm-vlogin'
-Vue.use(bm_Vlogin);
+import login from 'bm-vlogin'
+Vue.use(login);
 //引入侧拉菜单组件
 import {DrawerLayout} from 'vue-drawer-layout'
 Vue.component(DrawerLayout.name, DrawerLayout);
@@ -37,8 +39,8 @@ import 'ant-design-vue/dist/antd.css'
 Vue.use(DropDown).use(Menu).use(Icon).use(Modal).use(Button).use(Form).use(Input).use(InputNumber).use(Select).use(Divider).use(Carousel).use(Spin).use(Switch);
 
 // Vue.prototype.baseUrl='http://10.111.144.242:8688';
-Vue.prototype.baseUrl='http://192.168.0.109:8688'; //2A311
-// Vue.prototype.baseUrl='http://47.92.198.164:8688';//服务器
+// Vue.prototype.baseUrl='http://192.168.0.109:8688'; //2A311
+Vue.prototype.baseUrl='http://47.92.198.164:8688';//服务器
 
 Vue.config.productionTip = false;
 

@@ -48,11 +48,11 @@
             },
             login(input_info){
                 //登录
-                console.log(input_info);    //用户输入的用户名和密码
+                // console.log(input_info);    //用户输入的用户名和密码
                 let params = new URLSearchParams();
                 params.append('username',input_info.username);
                 params.append('password',input_info.password);
-                this.axios.post(this.baseUrl+'/user/login',params)
+                this.$axios.post(this.baseUrl+'/user/login',params)
                     .then((res) => {
                         console.log("res",res);
                         //保存user_id
@@ -71,7 +71,13 @@
                         }
                     })
                     .catch((err) => {
-                        console.log(err);
+                        // console.error("error",err.response);
+                        if (err.response.status === 403) {
+                            Toast({
+                                message: "用户名或密码错误！",
+                                position: 'middle',
+                            })
+                        }
                     })
             }
         }
