@@ -1,29 +1,19 @@
-# no_class_table
 
-## Project setup
-```
-npm install
-```
+# 页面展示
+## 登录
+![在这里插入图片描述](https://img-blog.csdnimg.cn/20200229221106551.png)
+# 主页
+个人课表（1-2表示1-2周）
+![在这里插入图片描述](https://img-blog.csdnimg.cn/20200229221146533.png)
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+无课表展示（仅部门管理员可见）
+![在这里插入图片描述](https://img-blog.csdnimg.cn/20200229221233440.png)
+查看部门成员
+![在这里插入图片描述](https://img-blog.csdnimg.cn/20200229221311794.png)
+修改课表
+![在这里插入图片描述](https://img-blog.csdnimg.cn/20200229221410419.png)
 
-### Compiles and minifies for production
-```
-npm run build
-```
-
-### Run your tests
-```
-npm run test
-```
-
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+创建组织
+![在这里插入图片描述](https://img-blog.csdnimg.cn/20200229221426542.png)
+查看与我有关的组织和部门
+![在这里插入图片描述](https://img-blog.csdnimg.cn/20200229221439913.png)
